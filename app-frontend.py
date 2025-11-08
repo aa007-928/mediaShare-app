@@ -90,7 +90,8 @@ def upload_page():
                 st.success("Posted!")
                 st.rerun()
             else:
-                st.error("Upload failed!")
+                st.error(response.json().get("detail","Upload failed"))
+                #st.error("Upload failed!")
             
 
 

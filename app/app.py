@@ -6,11 +6,14 @@ from contextlib import asynccontextmanager
 from sqlalchemy import select
 from app.images import imagekit
 from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+from PIL import Image
 import shutil
+import io
 import os
 import uuid
 import tempfile
 from app.users import auth_backend, current_active_user, fastapi_users
+from app.filter import classify_images, extract_video_frames
 
 
 @asynccontextmanager
@@ -39,6 +42,28 @@ async def upload_file(
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
             temp_file_path = temp_file.name
             shutil.copyfileobj(file.file, temp_file)
+
+        with open(temp_file_path, 'rb') as f:
+            data = f.read()
+
+        if file.content_type.startswith("image/"):
+            try:
+                img = Image.open(io.BytesIO(data)).convert("RGB")
+            except Exception as e:
+                raise HTTPException(400, f"Could not decode image: {e}")
+            blocked, count, score = classify_images([img])
+        elif file.content_type.startswith("video/"):
+            try:
+                frames = extract_video_frames(data, max_frames=30, every_secs=1.0)
+            except Exception as e:
+                raise HTTPException(400, f"Error processing video: {e}")
+            if not frames:
+                raise HTTPException(400, "Could not extract video frames")
+            blocked, count, score = classify_images(frames)
+
+        print(blocked,count,score)
+        if blocked:
+            raise HTTPException(400, f"NSFW detected. Upload Blocked.")
 
         upload_result = imagekit.upload_file(
             file=open(temp_file_path, "rb"),
