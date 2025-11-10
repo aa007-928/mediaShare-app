@@ -40,10 +40,10 @@
         └──────────────┬───────────────┬──────────────┐
                        │               │              │
              ┌─────────┘         ┌─────┴────┐    ┌────┴─────┐
-             │  NSFW Classifier  │  Database │    │ ImageKit │
-             │ (ViT Transformer) │  (Users,  │    │   CDN    │
-             │  Content Filter)  │  Posts)   │    │ (Storage)│
-             └───────────────────┘  └────────┘    └──────────┘
+             │  NSFW Classifier  │  Database│    │ ImageKit │
+             │ (ViT Transformer, │  (Users, │    │   CDN    │
+             │  Content Filter)  │  Posts)  │    │ (Storage)│
+             └───────────────────┘ └────────┘    └──────────┘
 
 ```
 ---
