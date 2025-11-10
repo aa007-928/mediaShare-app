@@ -13,7 +13,7 @@ import os
 import uuid
 import tempfile
 from app.users import auth_backend, current_active_user, fastapi_users
-from app.filter import classify_images, extract_video_frames
+from app.filter import classify_images, extract_video_frames, filter_caption
 
 
 @asynccontextmanager
@@ -64,6 +64,9 @@ async def upload_file(
         print(blocked,count,score)
         if blocked:
             raise HTTPException(400, f"NSFW detected. Upload Blocked.")
+        
+        if filter_caption(caption):
+            raise HTTPException(400, f"Inappropriate caption. Upload Blocked")
 
         upload_result = imagekit.upload_file(
             file=open(temp_file_path, "rb"),

@@ -6,6 +6,10 @@ from PIL import Image
 import cv2
 from scenedetect import open_video, SceneManager
 from scenedetect.detectors import ContentDetector
+from detoxify import Detoxify
+
+caption_filter = Detoxify('unbiased')
+CAP_THRES = 0.75
 
 MODEL_ID = "Falconsai/nsfw_image_detection"
 device = 0 if torch.cuda.is_available() else -1
@@ -84,6 +88,14 @@ def extract_video_frames(video_bytes: bytes, max_frames: int = 30, every_secs: f
     
     finally:
         os.unlink(tmp_path)
+
+def filter_caption(caption):
+    result = caption_filter.predict(caption)
+    block = False
+    for k,v in result.items():
+        if v > CAP_THRES:
+            block = True
+    return block
 
 
 
